@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bistrô & Comandas - Sistema de Gestão</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="brand-section">
+        <div class="brand">
+          <div class="brand-icon">B</div>
+          <h1 class="brand-name">Bistrô<span>Gestão</span></h1>
+        </div>
+        <nav>
+          <ul class="nav-menu">
+            <li>
+              <button class="nav-link active" id="nav-tables" onclick="switchView('tables')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+                Visão das Mesas
+              </button>
+            </li>
+            <li>
+              <button class="nav-link" id="nav-orders" onclick="switchView('orders')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M15 2H9a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1Z"/><path d="m9 14 2 2 4-4"/></svg>
+                Gestão de Pedidos
+                <span id="orders-badge-count" class="orders-nav-badge" style="display: none;">0</span>
+              </button>
+            </li>
+            <li>
+              <button class="nav-link" id="nav-menu-editor" onclick="switchView('menu-editor')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                Cardápio / Preços
+              </button>
+            </li>
+            <li class="nav-separator"></li>
+            <li>
+              <button class="nav-link" id="nav-clients" onclick="switchView('clients')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                Clientes & Fiados
+              </button>
+            </li>
+            <li>
+              <button class="nav-link" id="nav-settings" onclick="switchView('settings')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                Configurações
+              </button>
+            </li>
+            <li class="nav-separator"></li>
+            <li>
+              <a href="cliente.html" target="_blank" class="nav-link" style="color: var(--accent); font-weight: 700; background: var(--accent-light);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                Autoatendimento
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+
+      <div class="sidebar-footer">
+        <button class="theme-toggle-btn" id="theme-toggle" onclick="toggleTheme()">
+          <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          <span id="theme-text">Modo Escuro</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      
+      <!-- Top header statistics bar -->
+      <header class="header-bar">
+        <div class="header-title-container">
+          <h2 id="view-title">Gerenciamento de Mesas</h2>
+          <p class="header-subtitle" id="current-date">Sexta-feira, 29 de Maio</p>
+        </div>
+        
+        <!-- Live statistics (hidden in Cardápio view if desired, but good for summary) -->
+        <div class="stats-grid" id="dashboard-stats">
+          <div class="stat-card">
+            <div class="stat-icon success">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+            <div class="stat-info">
+              <span class="stat-label">Faturamento Hoje</span>
+              <span class="stat-value" id="stat-revenue">R$ 0,00</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon warning">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <div class="stat-info">
+              <span class="stat-label">Mesas Ocupadas</span>
+              <span class="stat-value" id="stat-occupied">0 / 12</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- VIEW 1: TABLES GRID -->
+      <section id="view-tables-panel" class="view-panel active">
+        <div class="tables-header">
+          <div class="tables-filter">
+            <button class="filter-btn active" id="filter-all" onclick="filterTables('all')">Todas</button>
+            <button class="filter-btn" id="filter-free" onclick="filterTables('free')">Livres</button>
+            <button class="filter-btn" id="filter-occupied" onclick="filterTables('occupied')">Ocupadas</button>
+            <button class="filter-btn" id="filter-paying" onclick="filterTables('paying')">Aguardando Pago</button>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="action-btn" style="background: var(--color-paying);" onclick="openBalcaoDrawer()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+              Balcão
+            </button>
+            <button class="action-btn" onclick="addNewTable()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+              Mesa
+            </button>
+          </div>
+        </div>
+
+        <div class="tables-grid" id="tables-container">
+          <!-- Dynamically populated tables -->
+        </div>
+      </section>
+
+      <!-- VIEW: ORDERS MANAGEMENT (KDS / COZINHA & BALCÃO) -->
+      <section id="view-orders-panel" class="view-panel">
+        <div class="tables-header">
+          <div class="tables-filter">
+            <button class="filter-btn active" id="filter-order-all" onclick="filterOrdersStatus('all')">Todos os Pedidos</button>
+            <button class="filter-btn" id="filter-order-preparing" onclick="filterOrdersStatus('preparing')">🟡 Em Preparo</button>
+            <button class="filter-btn" id="filter-order-ready" onclick="filterOrdersStatus('ready')">🟢 Prontos para Entrega</button>
+            <button class="filter-btn" id="filter-order-delivered" onclick="filterOrdersStatus('delivered')">⚪ Entregues</button>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="action-btn secondary" onclick="renderOrdersManagement()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+              Atualizar
+            </button>
+          </div>
+        </div>
+
+        <div class="orders-grid" id="orders-grid-container">
+          <!-- Dynamically populated orders -->
+        </div>
+      </section>
+
+      <!-- VIEW 2: MENU EDITOR -->
+      <section id="view-menu-editor-panel" class="view-panel">
+        <div class="menu-editor-layout">
+          <!-- Items List -->
+          <div class="menu-editor-list">
+            <div class="tables-header" style="margin-bottom: 12px;">
+              <h3>Lista de Itens do Cardápio</h3>
+              <div class="tables-filter" id="menu-editor-filter">
+                <button class="filter-btn active" onclick="filterEditorMenu('all')">Todos</button>
+                <button class="filter-btn" onclick="filterEditorMenu('entradas')">Entradas</button>
+                <button class="filter-btn" onclick="filterEditorMenu('pratos')">Pratos</button>
+                <button class="filter-btn" onclick="filterEditorMenu('porcoes')">Porções</button>
+                <button class="filter-btn" onclick="filterEditorMenu('bebidas')">Bebidas</button>
+                <button class="filter-btn" onclick="filterEditorMenu('sobremesas')">Sobremesas</button>
+              </div>
+            </div>
+            
+            <div class="menu-editor-items" id="editor-items-container">
+              <!-- Dynamically populated items -->
+            </div>
+          </div>
+
+          <!-- Add/Edit Form -->
+          <div class="menu-editor-form">
+            <h3 class="menu-form-title" id="form-item-title">Novo Item de Cardápio</h3>
+            <form id="menu-item-form" onsubmit="handleSaveMenuItem(event)">
+              <input type="hidden" id="form-item-id">
+              
+              <div class="form-group" style="margin-bottom: 16px;">
+                <label class="form-label" for="form-name">Nome do Item *</label>
+                <input class="form-input" type="text" id="form-name" required placeholder="Ex: Filé à Parmegiana">
+              </div>
+              
+              <div class="form-row" style="margin-bottom: 16px;">
+                <div class="form-group">
+                  <label class="form-label" for="form-category">Categoria *</label>
+                  <select class="form-input" id="form-category" required>
+                    <option value="entradas">Entradas</option>
+                    <option value="pratos">Pratos Principais</option>
+                    <option value="porcoes">Porções</option>
+                    <option value="bebidas">Bebidas</option>
+                    <option value="sobremesas">Sobremesas</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="form-price">Preço Unitário (R$) *</label>
+                  <input class="form-input" type="number" step="0.01" min="0" id="form-price" required placeholder="0.00">
+                </div>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 16px;">
+                <label class="form-label" for="form-description">Descrição</label>
+                <textarea class="form-input" id="form-description" rows="3" placeholder="Ingredientes, porção, detalhes..." style="resize: none;"></textarea>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 24px;">
+                <label class="form-label">Foto do Produto (Opcional)</label>
+                <input type="file" id="form-image-input" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
+                <div class="image-upload-area" onclick="document.getElementById('form-image-input').click()" id="image-upload-area">
+                  <div id="image-preview-placeholder" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text-tertiary); cursor: pointer;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 8px;"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                    <span style="font-size: 0.85rem;">Clique para adicionar foto</span>
+                  </div>
+                  <img id="image-preview" src="" style="display: none; width: 100%; height: 100%; object-fit: cover; border-radius: 6px; cursor: pointer;">
+                </div>
+                <input type="hidden" id="form-image-base64">
+                <button type="button" id="btn-remove-image" class="action-btn secondary" style="display: none; width: 100%; margin-top: 8px; justify-content: center;" onclick="removeImage()">Remover Foto</button>
+              </div>
+
+              <div style="display: flex; gap: 12px;">
+                <button class="action-btn" type="submit" style="flex-grow: 1;" id="btn-save-item">Adicionar Item</button>
+                <button class="action-btn secondary" type="button" onclick="resetMenuForm()" id="btn-cancel-edit" style="display: none;">Cancelar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 3: CLIENTES & FIADOS -->
+      <section id="view-clients-panel" class="view-panel">
+        <div class="menu-editor-layout">
+          
+          <div class="menu-editor-list">
+            <div class="tables-header" style="margin-bottom: 12px;">
+              <h3>Lista de Fiados Pendentes</h3>
+            </div>
+            <div class="menu-editor-items" id="fiados-list-container">
+              <!-- Fiados populated here -->
+            </div>
+          </div>
+
+          <div class="menu-editor-form">
+            <h3 class="menu-form-title">Novo Cliente</h3>
+            <form id="client-form" onsubmit="handleSaveClient(event)">
+              <div class="form-group" style="margin-bottom: 16px;">
+                <label class="form-label" for="client-name">Nome *</label>
+                <input class="form-input" type="text" id="client-name" required placeholder="Ex: João da Silva">
+              </div>
+              <div class="form-group" style="margin-bottom: 16px;">
+                <label class="form-label" for="client-phone">Telefone</label>
+                <input class="form-input" type="text" id="client-phone" placeholder="Ex: (11) 99999-9999">
+              </div>
+              <div class="form-group" style="margin-bottom: 16px;">
+                <label class="form-label" for="client-address">Endereço</label>
+                <textarea class="form-input" id="client-address" rows="2" placeholder="Ex: Rua das Flores, 123" style="resize: none;"></textarea>
+              </div>
+              <div class="form-row" style="margin-bottom: 24px;">
+                <div class="form-group">
+                  <label class="form-label" for="client-paydate">Data Pagamento</label>
+                  <input class="form-input" type="text" id="client-paydate" placeholder="Ex: Todo dia 15">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="client-limit">Limite Fiado (R$)</label>
+                  <input class="form-input" type="number" step="0.01" min="0" id="client-limit" placeholder="Sem limite">
+                </div>
+              </div>
+              <button class="action-btn" type="submit" style="width: 100%;">Cadastrar Cliente</button>
+            </form>
+            
+            <h3 class="menu-form-title" style="margin-top: 32px; border-top: 1px solid var(--border); padding-top: 16px;">Clientes Cadastrados</h3>
+            <div id="clients-list" style="display: flex; flex-direction: column; gap: 8px; max-height: 300px; overflow-y: auto;">
+              <!-- Clients populated here -->
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- VIEW 4: SETTINGS (Configurações) -->
+      <section id="view-settings-panel" class="view-panel">
+        <div class="settings-layout">
+          <!-- Settings Sidebar -->
+          <div class="settings-sidebar">
+            <h3 class="settings-sidebar-title">Configurações</h3>
+            <ul class="settings-nav">
+              <li>
+                <button class="settings-nav-link active" id="settings-nav-users" onclick="switchSettingsTab('users')">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                  Gerenciar Usuários
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Settings Content -->
+          <div class="settings-content">
+            <!-- Tab: Gerenciar Usuários -->
+            <div class="settings-tab active" id="settings-tab-users">
+              <div class="settings-content-header">
+                <div>
+                  <h3>Gerenciar Usuários</h3>
+                  <p class="settings-content-subtitle">Adicione, edite ou remova usuários do sistema.</p>
+                </div>
+                <button class="action-btn" onclick="openUserModal()">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                  Novo Usuário
+                </button>
+              </div>
+
+              <div class="users-table-container">
+                <table class="users-table" id="users-table">
+                  <thead>
+                    <tr>
+                      <th>Usuário</th>
+                      <th>E-mail</th>
+                      <th>Perfil</th>
+                      <th>Status</th>
+                      <th>Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody id="users-table-body">
+                    <!-- Dynamically populated -->
+                  </tbody>
+                </table>
+                <div class="empty-state" id="users-empty-state" style="display: none;">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                  <p>Nenhum usuário cadastrado ainda.</p>
+                  <button class="action-btn" onclick="openUserModal()">Cadastrar Primeiro Usuário</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- SLIDE DRAWER: COMANDA DETAILS -->
+  <div class="overlay" id="overlay" onclick="closeDrawerAndModal()"></div>
+
+  <div class="drawer" id="comanda-drawer">
+    <div class="drawer-header">
+      <div class="drawer-title-container">
+        <h3 id="drawer-title">Mesa 01</h3>
+        <span class="drawer-subtitle" id="drawer-subtitle">Livre</span>
+      </div>
+      <button class="close-btn" onclick="closeDrawerAndModal()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="drawer-body" id="drawer-body">
+      <!-- DYNAMIC CONTENT: EITHER OPEN COMANDA FORM OR ACTIVE COMANDA VIEW -->
+    </div>
+
+    <div class="drawer-footer" id="drawer-footer">
+      <!-- DYNAMIC FOOTER ACTIONS -->
+    </div>
+  </div>
+
+  <!-- MODAL: CHECKOUT / PAGAMENTO -->
+  <div class="modal" id="checkout-modal">
+    <div class="modal-header">
+      <h3>Fechar Comanda & Pagamento</h3>
+      <button class="close-btn" onclick="closeCheckoutModal()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    
+    <div class="modal-body">
+      <div style="text-align: center; margin-bottom: 8px;">
+        <span style="font-size: 0.875rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 600;">Total a Pagar</span>
+        <h2 style="font-size: 2.25rem; font-weight: 800; color: var(--accent); margin-top: 4px;" id="modal-checkout-total">R$ 0,00</h2>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Forma de Pagamento *</label>
+        <div class="payment-grid">
+          <button class="payment-btn" id="pay-pix" onclick="selectPaymentMethod('pix')">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m8 10 4 4 4-4"/></svg>
+            PIX
+          </button>
+          <button class="payment-btn" id="pay-credit" onclick="selectPaymentMethod('credit')">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+            C. Crédito
+          </button>
+          <button class="payment-btn" id="pay-debit" onclick="selectPaymentMethod('debit')">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/><line x1="6" x2="6.01" y1="15" y2="15"/></svg>
+            C. Débito
+          </button>
+          <button class="payment-btn" id="pay-cash" onclick="selectPaymentMethod('cash')">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            Dinheiro
+          </button>
+          <button class="payment-btn" id="pay-fiado" onclick="selectPaymentMethod('fiado')">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+            Fiado
+          </button>
+        </div>
+      </div>
+
+      <!-- Cash Change Area (Shown only when Cash is selected) -->
+      <div class="change-calculator" id="change-calculator-section" style="display: none;">
+        <div class="form-group">
+          <label class="form-label" for="cash-received">Valor Recebido (R$)</label>
+          <input class="form-input" type="number" step="0.01" id="cash-received" oninput="calculateChange()" placeholder="0.00">
+        </div>
+        <div style="display: flex; justify-content: space-between; font-weight: 700; margin-top: 8px;">
+          <span>Troco:</span>
+          <span id="cash-change-value" style="color: var(--color-free);">R$ 0,00</span>
+        </div>
+      </div>
+
+      <!-- Fiado Client Area (Shown only when Fiado is selected) -->
+      <div class="change-calculator" id="fiado-client-section" style="display: none;">
+        <div class="form-group">
+          <label class="form-label" for="fiado-client-select">Vincular Dívida a um Cliente</label>
+          <select class="form-input" id="fiado-client-select">
+            <option value="avulso">Nome da Mesa (Avulso)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="action-btn secondary" onclick="printReceiptFromModal()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+        Imprimir Conta
+      </button>
+      <button class="action-btn" onclick="confirmPaymentAndReleaseTable()">Finalizar Mesa</button>
+    </div>
+  </div>
+
+  <!-- MODAL: NOVO/EDITAR USUÁRIO -->
+  <div class="modal" id="user-modal">
+    <div class="modal-header">
+      <h3 id="user-modal-title">Novo Usuário</h3>
+      <button class="close-btn" onclick="closeUserModal()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form id="user-form" onsubmit="handleSaveUser(event)">
+        <input type="hidden" id="user-form-id">
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label class="form-label" for="user-form-name">Nome Completo *</label>
+          <input class="form-input" type="text" id="user-form-name" required placeholder="Ex: João Silva">
+        </div>
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label class="form-label" for="user-form-email">E-mail *</label>
+          <input class="form-input" type="email" id="user-form-email" required placeholder="joao@email.com">
+        </div>
+        <div class="form-row" style="margin-bottom: 16px;">
+          <div class="form-group">
+            <label class="form-label" for="user-form-role">Perfil de Acesso *</label>
+            <select class="form-input" id="user-form-role" required>
+              <option value="admin">Administrador</option>
+              <option value="manager">Gerente</option>
+              <option value="waiter">Garçom</option>
+              <option value="cashier">Caixa</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="user-form-status">Status *</label>
+            <select class="form-input" id="user-form-status" required>
+              <option value="active">Ativo</option>
+              <option value="inactive">Inativo</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom: 24px;">
+          <label class="form-label" for="user-form-password">Senha *</label>
+          <input class="form-input" type="password" id="user-form-password" placeholder="Mínimo 6 caracteres" minlength="6">
+        </div>
+        <div style="display: flex; gap: 12px;">
+          <button class="action-btn" type="submit" style="flex-grow: 1;" id="btn-save-user">Cadastrar Usuário</button>
+          <button class="action-btn secondary" type="button" onclick="closeUserModal()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: QUITAR FIADO -->
+  <div class="modal" id="pay-fiado-modal">
+    <div class="modal-header">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="width: 38px; height: 38px; border-radius: 8px; background: var(--color-paying-light); color: var(--color-paying); display: flex; align-items: center; justify-content: center;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+        </div>
+        <div>
+          <h3 style="margin: 0; font-size: 1.2rem;">Quitar Débito do Fiado</h3>
+          <span style="font-size: 0.8rem; color: var(--text-secondary);">Dar baixa na caderneta e lançar no caixa</span>
+        </div>
+      </div>
+      <button class="close-btn" onclick="closePayFiadoModal()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    
+    <div class="modal-body">
+      <input type="hidden" id="modal-fiado-id">
+      
+      <div style="background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; display: flex; flex-direction: column; gap: 6px;">
+        <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+          <span style="color: var(--text-secondary);">Cliente Titular:</span>
+          <span style="color: var(--text-primary); font-weight: 700;" id="modal-fiado-client">Cliente</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+          <span style="color: var(--text-secondary);">Origem do Pedido:</span>
+          <span style="color: var(--text-primary);" id="modal-fiado-origin">Autoatendimento</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+          <span style="color: var(--text-secondary);">Data:</span>
+          <span style="color: var(--text-primary);" id="modal-fiado-date">--/--/---- --:--</span>
+        </div>
+      </div>
+
+      <div style="text-align: center; background: var(--color-paying-light); border: 1.5px solid rgba(201, 42, 42, 0.25); border-radius: var(--radius-md); padding: 14px 16px;">
+        <span style="font-size: 0.78rem; text-transform: uppercase; font-weight: 700; color: var(--text-secondary); letter-spacing: 0.05em; display: block; margin-bottom: 2px;">Valor Total a Quitar</span>
+        <div style="font-size: 1.8rem; font-weight: 800; color: var(--color-paying); font-family: var(--font-title);" id="modal-fiado-total">R$ 0,00</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Forma de Recebimento no Caixa *</label>
+        <div class="payment-grid" style="grid-template-columns: repeat(3, 1fr);">
+          <button type="button" class="payment-btn active" id="fiado-pay-btn-cash" onclick="selectFiadoPayMethod('cash')">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            Dinheiro
+          </button>
+          <button type="button" class="payment-btn" id="fiado-pay-btn-pix" onclick="selectFiadoPayMethod('pix')">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m8 10 4 4 4-4"/></svg>
+            PIX
+          </button>
+          <button type="button" class="payment-btn" id="fiado-pay-btn-card" onclick="selectFiadoPayMethod('card')">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+            Cartão
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="action-btn secondary" type="button" onclick="closePayFiadoModal()">Cancelar</button>
+      <button class="action-btn" type="button" style="background: var(--color-free);" onclick="confirmPayFiadoFromModal()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        Confirmar Quitação
+      </button>
+    </div>
+  </div>
+
+  <!-- PRINTABLE RECEIPT TEMPLATE (Hidden from normal UI view) -->
+  <div id="print-area" class="receipt-printable">
+    <!-- Populated dynamically right before window.print() -->
+  </div>
+
+  <!-- JavaScript Files -->
+  <script src="menu-data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

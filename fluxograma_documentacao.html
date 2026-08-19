@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Fluxograma e Manual de Operação - Bistrô & Gestão</title>
+  <!-- Mermaid JS para renderizar gráficos vetoriais -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'default',
+      themeVariables: {
+        primaryColor: '#fee2e2',
+        primaryTextColor: '#7f1d1d',
+        primaryBorderColor: '#c92a2a',
+        lineColor: '#a61e1e',
+        secondaryColor: '#dcfce7',
+        tertiaryColor: '#f1f5f9'
+      }
+    });
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Outfit:wght@600;700;800&display=swap');
+
+    @page {
+      size: A4;
+      margin: 15mm;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', Arial, sans-serif;
+      color: #0f172a;
+      background: #f8fafc;
+      padding: 30px;
+      line-height: 1.5;
+    }
+
+    .doc-container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+
+    .doc-header {
+      text-align: center;
+      padding-bottom: 24px;
+      border-bottom: 2px solid #e2e8f0;
+      margin-bottom: 30px;
+    }
+
+    .doc-logo {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 50px;
+      height: 50px;
+      background: linear-gradient(135deg, #c92a2a, #a61e1e);
+      color: white;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      font-size: 1.6rem;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2rem;
+      font-weight: 800;
+      color: #c92a2a;
+      margin-bottom: 6px;
+    }
+
+    .doc-subtitle {
+      font-size: 1.1rem;
+      color: #64748b;
+      font-style: italic;
+    }
+
+    h2 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #1e293b;
+      margin: 32px 0 14px 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .badge-tag {
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 9999px;
+    }
+
+    .badge-dono {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .badge-cliente {
+      background: #dcfce7;
+      color: #15803d;
+    }
+
+    p {
+      font-size: 0.95rem;
+      color: #334155;
+      margin-bottom: 14px;
+    }
+
+    .diagram-box {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 20px;
+      margin: 18px 0;
+      display: flex;
+      justify-content: center;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 18px 0;
+      font-size: 0.88rem;
+    }
+
+    th {
+      background: #c92a2a;
+      color: white;
+      font-weight: 700;
+      padding: 10px 14px;
+      text-align: left;
+    }
+
+    th.th-cliente {
+      background: #059669;
+    }
+
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #e2e8f0;
+      color: #1e293b;
+      vertical-align: top;
+    }
+
+    tr:nth-child(even) td {
+      background: #f8fafc;
+    }
+
+    .highlight-cell {
+      font-weight: 700;
+      color: #991b1b;
+    }
+
+    .highlight-cell-cli {
+      font-weight: 700;
+      color: #059669;
+    }
+
+    .print-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .btn-action {
+      background: #c92a2a;
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+
+    .btn-action:hover {
+      background: #a61e1e;
+    }
+
+    @media print {
+      body {
+        padding: 0;
+        background: white;
+      }
+      .doc-container {
+        box-shadow: none;
+        padding: 0;
+        max-width: 100%;
+      }
+      .print-actions {
+        display: none;
+      }
+      .diagram-box {
+        page-break-inside: avoid;
+      }
+      h2 {
+        page-break-before: auto;
+      }
+      table {
+        page-break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="print-actions">
+    <button class="btn-action" onclick="window.print()">
+      🖨️ Salvar como PDF / Imprimir
+    </button>
+  </div>
+
+  <div class="doc-container">
+    
+    <!-- Cabeçalho -->
+    <div class="doc-header">
+      <div class="doc-logo">B</div>
+      <h1>Bistrô Gestão & Autoatendimento</h1>
+      <div class="doc-subtitle">Manual de Operação e Fluxogramas dos Processos (Dono & Cliente)</div>
+    </div>
+
+    <!-- SEÇÃO 1: VISÃO GERAL -->
+    <h2>1. Visão Geral do Sistema</h2>
+    <p>
+      O sistema é uma solução completa para bares e restaurantes que conecta em tempo real a retaguarda e a operação de salão (<strong>index.html</strong>) ao autoatendimento e totens dos clientes (<strong>cliente.html</strong>).
+    </p>
+
+    <!-- SEÇÃO 2: FLUXO DO DONO / GESTOR -->
+    <h2>
+      2. Fluxograma do Dono / Gestor
+      <span class="badge-tag badge-dono">index.html</span>
+    </h2>
+    <p>
+      Responsável pela gestão de comandas, liberação de mesas, acompanhamento da fila de produção na cozinha (KDS), alteração do cardápio e controle do faturamento/fiados.
+    </p>
+
+    <div class="diagram-box">
+      <pre class="mermaid">
+flowchart TD
+    Inicio(["Login no Painel Admin (index.html)"]) --> MenuLateral{"Menu Lateral do Sistema"}
+
+    %% VISÃO DAS MESAS
+    MenuLateral -->|"1. Visão das Mesas"| Mesas["Mapa de Mesas do Salão"]
+    Mesas --> OpMesas{"Ação na Mesa"}
+    OpMesas -->|"Mesa Livre"| AbrirMesa["Abrir Mesa (Nome + Pessoas)"]
+    OpMesas -->|"Mesa Ocupada"| Gaveta["Abrir Gaveta da Comanda"]
+    
+    Gaveta --> AddItens["Lançar Pratos e Bebidas"]
+    AddItens --> EnviarCozinha["Enviar para Produção"]
+    EnviarCozinha -->|"Notifica"| FilaKDS["Entra na Gestão de Pedidos (KDS)"]
+    
+    Gaveta --> FecharConta["Fechar Conta (10% Garçom + Desconto)"]
+    FecharConta --> FormasPag["Forma de Pagamento (Pix / Cartão / Dinheiro / Fiado)"]
+    FormasPag -->|"Pagamento Concluído"| Faturamento["Soma na Receita / Lança no Fiado"]
+    Faturamento --> LiberaMesa["Libera a Mesa para Novos Clientes"]
+
+    %% GESTÃO DE PEDIDOS (KDS)
+    MenuLateral -->|"2. Gestão de Pedidos"| KDS["Painel da Cozinha & Balcão"]
+    KDS --> CardsPedidos["Cards com Origem (Mesa/Balcão), Cliente e Itens"]
+    CardsPedidos --> EmPreparo["🟡 Pedido Em Preparo"]
+    EmPreparo -->|"Botão: Marcar Pronto"| Pronto["🟢 Pronto para Entrega"]
+    Pronto -->|"Botão: Entregar"| Entregue["⚪ Entregue / Finalizado"]
+
+    %% CARDÁPIO & PREÇOS
+    MenuLateral -->|"3. Cardápio / Preços"| Cardapio["Gestão do Cardápio"]
+    Cardapio --> CrudPratos["Cadastrar / Editar Pratos, Preços e Fotos"]
+
+    %% CLIENTES & FIADOS
+    MenuLateral -->|"4. Clientes & Fiados"| Clientes["Painel de Fiados & Clientes"]
+    Clientes --> CadastrarCliente["Cadastrar Clientes, Limites e Vencimento"]
+    Clientes --> ExtratoFiado["Consultar Extrato de Dívidas e Itens Consumidos"]
+    ExtratoFiado --> ImprimirNota["Imprimir Nota Promissória ou Quitar Débito"]
+      </pre>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Módulo / Tela</th>
+          <th>Ações do Gestor</th>
+          <th>Resultado no Sistema</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="highlight-cell">1. Visão das Mesas</td>
+          <td>Clica em uma mesa livre para abri-la informando o nome do cliente e quantidade de pessoas.</td>
+          <td>A mesa muda de status para 'Ocupada' e inicia o cronômetro de tempo de permanência.</td>
+        </tr>
+        <tr>
+          <td class="highlight-cell">2. Gaveta de Comandas</td>
+          <td>Adiciona pratos e bebidas à cesta da mesa e clica em 'Confirmar e Enviar para Produção'.</td>
+          <td>Os itens entram na comanda da mesa e são disparados instantaneamente para a fila da cozinha.</td>
+        </tr>
+        <tr>
+          <td class="highlight-cell">3. Fechamento de Conta</td>
+          <td>Abre a gaveta da mesa, aplica taxa de serviço (10%) ou desconto e seleciona o método de pagamento.</td>
+          <td>Calcula subtotal e total com recibo detalhado discriminando cada prato.</td>
+        </tr>
+        <tr>
+          <td class="highlight-cell">4. Pagamento & Liberação</td>
+          <td>Recebe via Pix, Cartão, Dinheiro ou Fiado e clica em 'Confirmar Pagamento e Liberar'.</td>
+          <td>Soma à receita do dia (ou lança na caderneta de fiados), limpa o consumo e libera a mesa.</td>
+        </tr>
+        <tr>
+          <td class="highlight-cell">5. Gestão de Pedidos (KDS)</td>
+          <td>Acompanha pedidos das mesas e do autoatendimento em cartões coloridos com horário e local de entrega.</td>
+          <td>Altera status para '🟡 Em Preparo', '🟢 Pronto para Entrega' ou '⚪ Entregue'.</td>
+        </tr>
+        <tr>
+          <td class="highlight-cell">6. Cardápio & Preços</td>
+          <td>Cadastra novos pratos com foto, categoria, descrição e preço, ou edita itens existentes.</td>
+          <td>Atualiza instantaneamente o cardápio no painel e na tela de autoatendimento dos clientes.</td>
+        </tr>
+        <tr>
+          <td class="highlight-cell">7. Clientes & Fiados</td>
+          <td>Cadastra clientes com limite de crédito e vencimento; consulta extrato detalhado do consumo.</td>
+          <td>Permite imprimir nota promissória para assinatura ou quitar a dívida após recebimento.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- SEÇÃO 3: FLUXO DO CLIENTE -->
+    <h2>
+      3. Fluxograma do Cliente
+      <span class="badge-tag badge-cliente">cliente.html</span>
+    </h2>
+    <p>
+      Jornada do cliente através do portal de autoatendimento express (totem, tablet ou celular).
+    </p>
+
+    <div class="diagram-box">
+      <pre class="mermaid">
+flowchart TD
+    InicioCliente(["Cliente Acessa cliente.html"]) --> TelaInicial{"Tela Inicial"}
+
+    %% OPÇÃO A: LOGIN
+    TelaInicial -->|"Já sou Cadastrado (Login)"| TelaLogin["Tela de Login"]
+    TelaLogin --> DigitaLogin["Seleciona/Digita Nome + Senha de Acesso"]
+    DigitaLogin --> AcaoLogin{"O que deseja fazer?"}
+    
+    AcaoLogin -->|"Consultar Conta"| MinhaConta["Painel 'Minha Conta / Extrato de Fiado'"]
+    MinhaConta --> VerExtrato["Consulta Saldo Devedor, Limite e Itens Consumidos"]
+    MinhaConta --> PagarPix["Pagar Dívida via QR Code PIX Instantâneo"]
+    MinhaConta --> PedirFiado["Fazer Novo Pedido no Fiado"]
+
+    %% OPÇÃO B: PEDIDO RÁPIDO
+    TelaInicial -->|"Pedido Rápido"| Identificacao["Digita Nome + WhatsApp + Opção (Viagem / Local)"]
+    
+    %% CARDÁPIO
+    Identificacao & PedirFiado & AcaoLogin -->|"Entrar & Pedir"| CardapioCliente["Cardápio Interativo"]
+    CardapioCliente --> Navega["Navega por Categorias (Entradas, Pratos, Bebidas, Doces) ou Busca"]
+    Navega --> AdicionaPrato["Seleciona Pratos com botões + e −"]
+    AdicionaPrato --> BarraFlutuante["Barra Flutuante Inferior exibe Itens e Subtotal em Tempo Real"]
+
+    %% CARRINHO
+    BarraFlutuante --> RevisaoCarrinho["Tela do Carrinho"]
+    RevisaoCarrinho --> AjustaQtd["Revisa Itens e Adiciona Observações (ex: 'Sem Cebola')"]
+    AjustaQtd --> TelaPagamento["Tela de Pagamento"]
+
+    %% PAGAMENTO
+    TelaPagamento --> EscolhePagamento{"Forma de Pagamento"}
+    EscolhePagamento -->|"PIX"| Pix["Exibe QR Code Dinâmico + Código Copia e Cola"]
+    EscolhePagamento -->|"Cartão"| Cartao["Instrução de Aproximação no Balcão"]
+    EscolhePagamento -->|"Dinheiro"| Dinheiro["Informa Troco para Quanto"]
+    EscolhePagamento -->|"Fiado / Caderneta"| Fiado["Identifica Conta e Autoriza na Caderneta"]
+
+    %% CONFIRMAÇÃO
+    Pix & Cartao & Dinheiro & Fiado --> FinalizarPedido["Finalizar Pedido"]
+    FinalizarPedido --> Sucesso["Tela de Sucesso & Emissão de Senha"]
+    Sucesso --> EmiteSenha["Exibe Senha de Retirada (ex: Senha #001)"]
+    Sucesso --> ImprimeCupom["Botão para Imprimir Cupom Térmico"]
+    Sucesso --> Sincroniza["Dispara Pedido Instantaneamente para a Cozinha"]
+      </pre>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th class="th-cliente">Etapa do Cliente</th>
+          <th class="th-cliente">Ação Realizada</th>
+          <th class="th-cliente">Comportamento do Sistema</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="highlight-cell-cli">1. Tela Inicial</td>
+          <td>Informa Nome, Telefone e opção de consumo (Para Viagem ou Comer no Local).</td>
+          <td>Pode avançar diretamente para o cardápio ou clicar em 'Fazer Login / Minha Conta'.</td>
+        </tr>
+        <tr>
+          <td class="highlight-cell-cli">2. Login (Cadastrado)</td>
+          <td>Seleciona seu nome na lista de clientes cadastrados e digita sua senha de acesso.</td>
+          <td>Autentica o cliente e abre seu painel personalizado com saldo e extrato.</td>
+        </tr>
+        <tr>
+          <td class="highlight-cell-cli">3. Minha Conta / Fiado</td>
+          <td>Consulta o Total Devido, Limite Disponível, Vencimento e itens consumidos no passado.</td>
+          <td>Oferece botões para 'Fazer Pedido no Fiado' ou 'Pagar Conta via PIX' (com QR Code).</td>
+        </tr>
+        <tr>
+          <td class="highlight-cell-cli">4. Cardápio Interativo</td>
+          <td>Navega pelas categorias ou pesquisa pratos por nome.</td>
+          <td>Exibe fotos, descrições, preços e botões '+' e '−' com barra flutuante inferior.</td>
+        </tr>
+        <tr>
+          <td class="highlight-cell-cli">5. Carrinho & Revisão</td>
+          <td>Ajusta quantidades dos pratos e adiciona observações (ex: 'Sem cebola').</td>
+          <td>Calcula subtotal e prepara para a tela de pagamento.</td>
+        </tr>
+        <tr>
+          <td class="highlight-cell-cli">6. Pagamento no Balcão</td>
+          <td>Escolhe entre PIX (QR Code), Cartão, Dinheiro (com troco) ou Fiado.</td>
+          <td>Se escolher Fiado, vincula à caderneta e aprova a compra.</td>
+        </tr>
+        <tr>
+          <td class="highlight-cell-cli">7. Senha & Confirmação</td>
+          <td>O sistema emite a Senha de Retirada (ex: Senha #001) com resumo dos itens e horário.</td>
+          <td>Dispara o pedido imediatamente para a cozinha e permite imprimir cupom térmico.</td>
+        </tr>
+      </tbody>
+    </table>
+
+  </div>
+
+</body>
+</html>

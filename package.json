@@ -1,0 +1,12 @@
+{
+  "name": "gerenciamento-de-comandas",
+  "version": "1.0.0",
+  "description": "Sistema de Gerenciamento de Comandas e Mesas",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx -y http-server -p 3000"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
