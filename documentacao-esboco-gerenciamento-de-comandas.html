@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gerenciamento de Comandas — Documentação de Arquitetura da Informação</title>
+  <!-- Mermaid JS para renderizar diagramas e fluxogramas vetoriais -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'default',
+      themeVariables: {
+        primaryColor: '#fee2e2',
+        primaryTextColor: '#7f1d1d',
+        primaryBorderColor: '#c92a2a',
+        lineColor: '#a61e1e',
+        secondaryColor: '#dcfce7',
+        tertiaryColor: '#f1f5f9'
+      }
+    });
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@600;700;800&display=swap');
+
+    @page {
+      size: A4;
+      margin: 15mm;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', Arial, sans-serif;
+      color: #1e293b;
+      background: #eaedf2;
+      padding: 30px;
+      line-height: 1.55;
+    }
+
+    .doc-container {
+      max-width: 920px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 45px 50px;
+      border-radius: 12px;
+      box-shadow: 0 4px 25px rgba(0,0,0,0.07);
+    }
+
+    .doc-header {
+      text-align: center;
+      padding-bottom: 24px;
+      border-bottom: 2px solid #e2e8f0;
+      margin-bottom: 30px;
+    }
+
+    .doc-header-top {
+      font-size: 0.8rem;
+      color: #64748b;
+      text-align: right;
+      margin-bottom: 15px;
+      font-weight: 500;
+    }
+
+    .doc-logo {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 52px;
+      height: 52px;
+      background: linear-gradient(135deg, #c92a2a, #a61e1e);
+      color: white;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      font-size: 1.65rem;
+      border-radius: 10px;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 12px rgba(201, 42, 42, 0.25);
+    }
+
+    h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: #c92a2a;
+      margin-bottom: 6px;
+      letter-spacing: -0.02em;
+    }
+
+    .doc-subtitle {
+      font-size: 1.05rem;
+      color: #64748b;
+      font-style: italic;
+    }
+
+    h2 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #1e293b;
+      margin: 34px 0 14px 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    h3 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.08rem;
+      font-weight: 700;
+      color: #334155;
+      margin: 20px 0 8px 0;
+    }
+
+    p {
+      font-size: 0.95rem;
+      color: #334155;
+      margin-bottom: 12px;
+    }
+
+    ul, ol {
+      margin: 10px 0 16px 24px;
+      font-size: 0.93rem;
+      color: #334155;
+    }
+
+    li {
+      margin-bottom: 6px;
+    }
+
+    .note-box {
+      background: #f8fafc;
+      border-left: 4px solid #c92a2a;
+      padding: 14px 18px;
+      border-radius: 0 8px 8px 0;
+      margin: 16px 0;
+      font-size: 0.9rem;
+      color: #475569;
+      font-style: italic;
+    }
+
+    .table-custom {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 18px 0;
+      font-size: 0.88rem;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #e2e8f0;
+    }
+
+    .table-custom th {
+      background: #1e293b;
+      color: white;
+      font-weight: 700;
+      padding: 11px 16px;
+      text-align: left;
+    }
+
+    .table-custom td {
+      padding: 11px 16px;
+      border-bottom: 1px solid #e2e8f0;
+      color: #1e293b;
+      vertical-align: top;
+    }
+
+    .table-custom tr:nth-child(even) td {
+      background: #f8fafc;
+    }
+
+    .color-swatch-cell {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-family: monospace;
+    }
+
+    .color-circle {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 1px solid rgba(0,0,0,0.15);
+      flex-shrink: 0;
+    }
+
+    .diagram-card {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 22px;
+      margin: 18px 0;
+      display: flex;
+      justify-content: center;
+      overflow-x: auto;
+    }
+
+    .code-tree {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 20px;
+      border-radius: 8px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.88rem;
+      line-height: 1.45;
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+
+    .fidelity-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin: 18px 0;
+    }
+
+    .fidelity-box {
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 14px;
+      background: #ffffff;
+      text-align: center;
+    }
+
+    .fidelity-title {
+      font-weight: 700;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+      padding-bottom: 4px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .fidelity-preview {
+      border: 1px dashed #94a3b8;
+      border-radius: 6px;
+      padding: 14px 10px;
+      background: #f8fafc;
+      font-size: 0.8rem;
+      min-height: 140px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .print-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .btn-action {
+      background: #c92a2a;
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+
+    .btn-action:hover {
+      background: #a61e1e;
+    }
+
+    @media print {
+      body {
+        background: #ffffff;
+        padding: 0;
+      }
+      .doc-container {
+        box-shadow: none;
+        padding: 0;
+      }
+      .print-actions {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="doc-container">
+    
+    <div class="print-actions">
+      <button class="btn-action" onclick="window.print()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+        Imprimir / Salvar PDF
+      </button>
+    </div>
+
+    <div class="doc-header-top">
+      Gerenciamento de Comandas — Documentação de Arquitetura da Informação
+    </div>
+
+    <header class="doc-header">
+      <div class="doc-logo">B</div>
+      <h1>Gerenciamento de Comandas</h1>
+      <div class="doc-subtitle">Documentação de Arquitetura da Informação — Esboço v1</div>
+    </header>
+
+    <!-- 1. OBJETIVO -->
+    <section>
+      <h2>1. Objetivo</h2>
+      <p>Transformar a gestão tradicional de comandas, mesas, pedidos de cozinha e controle de fiados (antes feitos em blocos de papel e cadernos físicos) em uma aplicação web/mobile integrada, intuitiva e em tempo real, mantendo a agilidade necessária para o ambiente dinâmico de bares e restaurantes.</p>
+      <p><strong>Problema central:</strong> extravio de comandas físicas, comandas ilegíveis, descompasso entre atendimento e cozinha (gargalos de produção), descontrole de limites de fiado e falta de visibilidade para o cliente acompanhar seus pedidos e saldo em tempo real.</p>
+    </section>
+
+    <!-- 2. PERFIS DE USO -->
+    <section>
+      <h2>2. Perfis de Uso</h2>
+      <table class="table-custom">
+        <thead>
+          <tr>
+            <th style="width: 25%;">Perfil</th>
+            <th>Necessidade Principal</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Cliente (Autoatendimento)</strong></td>
+            <td>Acessar cardápio digital com fotos, montar pedido na cesta, enviar para produção, acompanhar o status ao vivo (Recebido ➔ Na Cozinha ➔ Pronto ➔ Entregue), consultar extrato e limite de fiado disponível.</td>
+          </tr>
+          <tr>
+            <td><strong>Dono / Operador (Bistrô Gestão)</strong></td>
+            <td>Visualizar e gerenciar mesas/balcão em tempo real, lançar itens na comanda, controlar a fila de pedidos da cozinha (KDS), administrar o cardápio e preços, gerenciar clientes, definir limites de crédito e quitar fiados no caixa.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="font-size: 0.9rem; color: #64748b; font-style: italic;">Um único ecossistema integrado, com visão condicionada por login/identificação e sincronização em tempo real via localStorage e storage events.</p>
+    </section>
+
+    <!-- 3. INVENTÁRIO DE CONTEÚDO -->
+    <section>
+      <h2>3. Inventário de Conteúdo</h2>
+      <p>Itens levantados a partir da operação diária de restaurante/bistrô e caderno de fiado:</p>
+      <ul>
+        <li><strong>Mesas e Comandas:</strong> Número da mesa, comanda avulsa (Balcão), quantidade de pessoas, status da mesa (Livre, Ocupada, Pagando, Reservada), horário de abertura.</li>
+        <li><strong>Cesta de Pedidos Pendentes:</strong> Itens selecionados, controle de quantidade (+/-), preço unitário, total da cesta, envio direto para produção.</li>
+        <li><strong>Comanda Ativa / Itens Confirmados:</strong> Histórico de itens consumidos, subtotal, taxa de serviço (10% opcional), desconto em R$ e valor total da comanda.</li>
+        <li><strong>Cardápio / Catálogo de Produtos:</strong> Nome, descrição, categoria (Entradas, Pratos, Porções, Bebidas, Sobremesas), preço de venda e foto ilustrativa de alta performance.</li>
+        <li><strong>Fila de Pedidos da Cozinha (KDS):</strong> Senha/Ticket, cliente, destino (Mesa ou Balcão), itens solicitados, observações do cliente, horário do pedido e status de preparo (Em Preparo ➔ Pronto ➔ Entregue).</li>
+        <li><strong>Ficha de Clientes & Fiados:</strong> Nome do cliente, telefone, saldo devedor acumulado, limite de crédito pré-aprovado, status de risco e histórico de compras.</li>
+        <li><strong>Quitação de Fiados:</strong> Modal de pagamento com valor da dívida e forma de recebimento (Dinheiro, PIX, Cartão).</li>
+        <li><strong>Acompanhamento do Cliente (Live Tracker):</strong> Visualização do ticket atual, timeline de 4 etapas e aviso comemorativo de retirada de pedido.</li>
+      </ul>
+    </section>
+
+    <!-- 4. CARD SORTING -->
+    <section>
+      <h2>4. Card Sorting — Agrupamento</h2>
+      <p>Ao organizar os itens acima a partir da jornada do usuário e dos operadores do salão/cozinha, os dados distribuem-se naturalmente em dois grandes grupos operacionais:</p>
+      
+      <p><strong>Grupo Cliente:</strong> Cardápio ilustrado, Cesta de compras, Checkout com identificação, Senha/Ticket gerado, Acompanhamento ao vivo do pedido, Carteira de Fiado e Limite de Crédito.</p>
+      
+      <p><strong>Grupo Dono:</strong> Painel de Mesas, Gaveta de Comandas ativas, Gestão de Pedidos (KDS da Cozinha), Editor de Cardápio e Preços, Ficha de Clientes, Gestão de Limites de Fiado e Relatórios de Faturamento.</p>
+
+      <div class="diagram-card">
+        <pre class="mermaid">
+graph LR
+  subgraph ANTES["ANTES — Itens Dispersos"]
+    direction TB
+    I1["Comanda de Mesa"]
+    I2["Fila da Cozinha"]
+    I3["Cardápio"]
+    I4["Cesta de Pedidos"]
+    I5["Saldo devedor"]
+    I6["Limite de crédito"]
+    I7["Status do pedido"]
+    I8["Quitação de fiado"]
+  end
+
+  subgraph DEPOIS["DEPOIS — Agrupamento por Visão"]
+    direction TB
+    subgraph GC["GRUPO CLIENTE (Autoatendimento)"]
+      C1["Cardápio Ilustrado"]
+      C2["Cesta & Checkout"]
+      C3["Timeline ao Vivo"]
+      C4["Limite & Saldo Fiado"]
+    end
+    subgraph GD["GRUPO DONO (Gestão Operacional)"]
+      D1["Visão de Mesas & Balcão"]
+      D2["Fila de Pedidos (KDS)"]
+      D3["Cardápio & Preços"]
+      D4["Clientes & Quitação"]
+    end
+  end
+
+  ANTES --> DEPOIS
+
+  style GC fill:#fee2e2,stroke:#c92a2a,stroke-width:1.5px
+  style GD fill:#f1f5f9,stroke:#1e293b,stroke-width:1.5px
+        </pre>
+      </div>
+
+      <div class="note-box">
+        <strong>Nota de Arquitetura:</strong> Essa separação garante que o cliente interaja com uma interface leve e focada na experiência de consumo, enquanto a equipe do bistrô opera um painel de alta densidade informativa com controle total de fluxo.
+      </div>
+    </section>
+
+    <!-- 5. ROTULAGEM -->
+    <section>
+      <h2>5. Rotulagem</h2>
+      <table class="table-custom">
+        <thead>
+          <tr>
+            <th style="width: 45%;">Rótulo Técnico / Sistema</th>
+            <th>Rótulo Usado no Aplicativo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Perfil Consumidor / Self-service</td>
+            <td><strong>Autoatendimento do Cliente</strong></td>
+          </tr>
+          <tr>
+            <td>Perfil Administrador / Backoffice</td>
+            <td><strong>Bistrô & Gestão (Dono)</strong></td>
+          </tr>
+          <tr>
+            <td>Kitchen Display System (KDS) / Fila de Produção</td>
+            <td><strong>Gestão de Pedidos (Cozinha)</strong></td>
+          </tr>
+          <tr>
+            <td>Table Grid / Overview de Salão</td>
+            <td><strong>Visão das Mesas</strong></td>
+          </tr>
+          <tr>
+            <td>Drawer de Comanda / Order Slip</td>
+            <td><strong>Detalhes da Comanda</strong></td>
+          </tr>
+          <tr>
+            <td>Carrinho de Pedidos Pendentes</td>
+            <td><strong>Cesta de Pedidos</strong></td>
+          </tr>
+          <tr>
+            <td>Receivables / Contas a Receber</td>
+            <td><strong>Clientes & Fiados</strong></td>
+          </tr>
+          <tr>
+            <td>Payment Settlement / Baixa de Título</td>
+            <td><strong>Quitar Dívida</strong></td>
+          </tr>
+          <tr>
+            <td>Order Live Tracker / Status Stepper</td>
+            <td><strong>Acompanhar Pedido</strong></td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="font-size: 0.9rem; color: #64748b; font-style: italic;">Critério de Rotulagem: Uso estrito do vocabulário prático de restaurante e comércio local, eliminando jargões técnicos para garantir aprendizado zero pelos atendentes e clientes.</p>
+    </section>
+
+    <!-- 6. ORGANOGRAMA -->
+    <section>
+      <h2>6. Organograma (Arquitetura da Informação)</h2>
+      <div class="code-tree">
+                         [ ACESSO AO SISTEMA ]
+                                  │
+      ┌───────────────────────────┴───────────────────────────┐
+      │                                                       │
+[ AUTOATENDIMENTO DO CLIENTE ]                     [ BISTRÔ & GESTÃO (DONO) ]
+      │                                                       │
+  Identificação (Login)                                   Painel Geral
+      │                                                       │
+      ├─► Cardápio Ilustrado (Categorias & Fotos)             ├─► Visão das Mesas (Salão & Balcão)
+      │     └─► Cesta de Pedidos (Ajuste de Quantidade)       │     ├─► Abertura de Comanda
+      │                                                       │     ├─► Cesta de Lançamento Rápido
+      ├─► Checkout (Mesa / Balcão / Viagem)                   │     ├─► Pedidos Confirmados (Subtotal/Taxa)
+      │     └─► Forma de Pagamento (PIX, Cartão, Fiado)       │     └─► Fechamento & Pagamento
+      │           └─► [Validação de Limite de Fiado]          │
+      │                                                       ├─► Gestão de Pedidos (KDS Cozinha)
+      ├─► Comprovante / Senha Gerada (Ticket)                 │     ├─► Em Preparo (Filtro por Destino)
+      │                                                       │     ├─► Pronto (Notificação de Retirada)
+      └─► Acompanhar Pedido (Live Tracker em 4 etapas)        │     └─► Concluído / Entregue
+            ├─► 1. Pedido Recebido                            │
+            ├─► 2. Na Cozinha (Em Preparo)                    ├─► Cardápio / Preços (CRUD & Categorias)
+            ├─► 3. Pronto para Retirada                       │
+            └─► 4. Entregue / Finalizado                      ├─► Clientes & Fiados
+                                                              │     ├─► Consulta & Filtro em Tempo Real
+                                                              │     ├─► Limite de Crédito & Saldo Devedor
+                                                              │     └─► Modal de Quitação de Dívida
+                                                              │
+                                                              └─► Configurações & Métricas de Vendas
+      </div>
+    </section>
+
+    <!-- 7. FLUXOGRAMAS DE TAREFA -->
+    <section>
+      <h2>7. Fluxogramas de Tarefa</h2>
+
+      <h3>7.1 Cliente realiza pedido e acompanha em tempo real</h3>
+      <p style="font-family: monospace; font-size: 0.88rem; background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0;">
+        Login Cliente ➔ Cardápio ➔ Adiciona à Cesta ➔ Finaliza Pedido (Mesa/Balcão) ➔ Escolhe Pagamento ➔ Recebe Senha ➔ Acompanha Timeline ao Vivo ➔ [Retira o Pedido]
+      </p>
+
+      <h3>7.2 Dono abre mesa, lança itens e fecha conta no salão</h3>
+      <p style="font-family: monospace; font-size: 0.88rem; background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0;">
+        Visão das Mesas ➔ Clica em Mesa Livre ➔ Informa Cliente e Pessoas ➔ Abre Comanda ➔ Adiciona Produtos da Cesta ➔ Envia para Produção ➔ Aplica Taxa/Desconto ➔ Encerra Conta & Registra Pagamento
+      </p>
+
+      <h3>7.3 Cliente compra no Fiado com validação de limite</h3>
+      <p style="font-family: monospace; font-size: 0.88rem; background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0;">
+        Checkout ➔ Seleciona "Pagar Depois (Fiado)" ➔ Sistema verifica (Dívida Atual + Valor do Pedido) vs Limite Cadastrado ➔ [Se Exceder: Bloqueia e exibe alerta detalhado] ➔ [Se Permitido: Confirma pedido e lança débito na ficha]
+      </p>
+
+      <h3>7.4 Dono quita dívida de cliente no caixa</h3>
+      <p style="font-family: monospace; font-size: 0.88rem; background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0;">
+        Menu Clientes & Fiados ➔ Busca Cliente ➔ Clica em "Quitar Dívida" ➔ Abre Modal com Total Devedor ➔ Seleciona Forma de Recebimento (Dinheiro/PIX/Cartão) ➔ Confirma Baixa ➔ Saldo Zerado e Notificação de Sucesso
+      </p>
+
+      <div class="diagram-card">
+        <pre class="mermaid">
+flowchart TD
+  START([Início da Operação]) --> LOGIN{Tipo de Acesso}
+
+  %% FLUXO DO CLIENTE
+  LOGIN -->|Cliente| CLI_LOGIN[Login / Identificação]
+  CLI_LOGIN --> CLI_MENU[Explorar Cardápio com Fotos]
+  CLI_MENU --> CLI_CART[Adicionar Itens na Cesta]
+  CLI_CART --> CLI_CHECKOUT{Opção de Pagamento}
+  
+  CLI_CHECKOUT -->|Imediato PIX/Cartão| CLI_CONFIRM[Pedido Confirmado]
+  CLI_CHECKOUT -->|Fiado / Pagar Depois| CLI_CHECK_LIMIT{Saldo + Pedido <= Limite?}
+  
+  CLI_CHECK_LIMIT -->|Não - Limite Excedido| CLI_BLOCK[Bloqueio: Exibe Modal de Limite]
+  CLI_BLOCK --> CLI_CHECKOUT
+  
+  CLI_CHECK_LIMIT -->|Sim - Aprovado| CLI_CONFIRM
+  
+  CLI_CONFIRM --> CLI_TICKET[Geração de Senha / Ticket]
+  CLI_TICKET --> CLI_TRACK[Live Tracker: Acompanhamento em 4 Etapas]
+
+  %% FLUXO DO DONO
+  LOGIN -->|Dono / Operador| DONO_DASH[Painel Bistrô & Gestão]
+  DONO_DASH --> DONO_MESAS[Visão das Mesas & Balcão]
+  DONO_DASH --> DONO_KDS[Gestão de Pedidos / Cozinha]
+  DONO_DASH --> DONO_CLIENTES[Clientes & Fiados]
+
+  DONO_MESAS --> DONO_OPEN[Abrir Comanda / Lançar Itens]
+  DONO_OPEN --> DONO_PAY[Fechar Conta / Receber Pagamento]
+
+  DONO_KDS --> KDS_UPDATE[Avançar Status: Preparo ➔ Pronto ➔ Entregue]
+  KDS_UPDATE -.->|Sincronização em Tempo Real| CLI_TRACK
+
+  DONO_CLIENTES --> FIADO_MODAL[Quitar Dívida no Caixa]
+  FIADO_MODAL --> FIADO_SUCCESS[Baixa Financeira Registrada]
+
+  style CLI_TRACK fill:#dcfce7,stroke:#15803d,stroke-width:2px
+  style CLI_BLOCK fill:#fee2e2,stroke:#c92a2a,stroke-width:2px
+  style DONO_DASH fill:#f8fafc,stroke:#1e293b,stroke-width:2px
+        </pre>
+      </div>
+    </section>
+
+    <!-- 8. NAVEGAÇÃO E SISTEMA DE BUSCA -->
+    <section>
+      <h2>8. Navegação e Sistema de Busca</h2>
+      <ul>
+        <li><strong>Navegação do Painel do Dono:</strong> Barra lateral esquerda fixa (Sidebar) com ícones e rótulos claros para alternância rápida entre <em>Visão das Mesas</em>, <em>Gestão de Pedidos (com contador de novos pedidos em tempo real)</em>, <em>Cardápio</em>, <em>Clientes & Fiados</em> e <em>Configurações</em>.</li>
+        <li><strong>Navegação do Cliente (Mobile-First):</strong> Barra de passos (Stepper) intuitiva com indicador de progresso (1. Cardápio ➔ 2. Cesta ➔ 3. Identificação ➔ 4. Pagamento ➔ 5. Pedido Confirmado / Acompanhamento).</li>
+        <li><strong>Busca e Filtros no Cardápio:</strong> Campo de busca em tempo real com filtro simultâneo por categorias (Todos, Entradas, Pratos, Porções, Bebidas, Doces) a cada tecla digitada.</li>
+        <li><strong>Busca de Clientes:</strong> Busca instantânea por nome ou telefone com ordenação por maior saldo devedor e indicador visual de limite atingido.</li>
+      </ul>
+    </section>
+
+    <!-- 9. WIREFRAMES -->
+    <section>
+      <h2>9. Wireframes — Especificação de Baixa Fidelidade</h2>
+      <p>Estrutura de conteúdo por tela, focada em hierarquia e densidade da informação:</p>
+
+      <h3>Home / Visão das Mesas (Dono)</h3>
+      <ul>
+        <li>Header com faturamento do dia, total de mesas ocupadas e atalho para Venda Rápida (Balcão).</li>
+        <li>Grid de cards de mesas coloridos por estado: Verde (Livre), Laranja (Ocupada), Roxo (Pagando), Azul (Reservada).</li>
+        <li>Ao clicar: Drawer lateral deslizante com detalhes da comanda.</li>
+      </ul>
+
+      <h3>Drawer de Comanda (Dono)</h3>
+      <ul>
+        <li><strong>Cesta de Pedidos:</strong> Bloco retrátil com novos itens a lançar, controles de quantidade e botão de envio à produção.</li>
+        <li><strong>Pedidos Confirmados:</strong> Lista de itens já consumidos com valor unitário, subtotal, checkbox de taxa de serviço (10%) e campo de desconto em R$.</li>
+        <li><strong>Seletor de Cardápio:</strong> Busca rápida e catálogo para adicionar produtos com um clique.</li>
+        <li><strong>Rodapé Fixo:</strong> Botão de Fechar Comanda / Pagamento.</li>
+      </ul>
+
+      <h3>Gestão de Pedidos / KDS (Cozinha)</h3>
+      <ul>
+        <li>Filtro de visualização (Todos, Mesas, Balcão).</li>
+        <li>Cards de pedidos contendo: Senha, Cliente, Destino, Tempo decorrido, Lista de itens com observações e Botões de avanço de etapa (<em>Marcar Pronto</em> ➔ <em>Marcar Entregue</em>).</li>
+      </ul>
+
+      <h3>Clientes & Fiados (Dono)</h3>
+      <ul>
+        <li>Resumo financeiro no topo: Total Fiado a Receber, Limite Total Concedido e Quantidade de Clientes Devedores.</li>
+        <li>Tabela de clientes com Nome, Telefone, Saldo Devedor, Limite e Botões de Ação (<em>Quitar Dívida</em>, <em>Editar</em>).</li>
+      </ul>
+
+      <h3>Autoatendimento do Cliente (Mobile)</h3>
+      <ul>
+        <li><strong>Tela Inicial / Login:</strong> Boas-vindas, campo de nome do cliente e seleção de mesa/balcão.</li>
+        <li><strong>Tela de Cardápio:</strong> Banner de boas-vindas, abas de categoria, cards de produtos com foto, nome, descrição, preço e botão "Adicionar".</li>
+        <li><strong>Tela de Checkout:</strong> Resumo da cesta, seleção do método de pagamento e alerta de limite caso opte por fiado.</li>
+        <li><strong>Tela de Acompanhamento (Live Tracker):</strong> Senha em destaque, estimativa de tempo e timeline visual com os 4 passos de preparo.</li>
+      </ul>
+    </section>
+
+    <!-- 10. PROTOTIPAGEM E ESCALA DE FIDELIDADE -->
+    <section>
+      <h2>10. Prototipagem e Escala de Fidelidade</h2>
+      <p>O desenvolvimento da interface segue a progressão estruturada em três estágios:</p>
+      
+      <table class="table-custom">
+        <thead>
+          <tr>
+            <th style="width: 18%;">Estágio</th>
+            <th style="width: 32%;">O Que Existe</th>
+            <th style="width: 30%;">O Que Se Testa</th>
+            <th>Ferramenta</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Lo-Fi</strong></td>
+            <td>Caixas em wireframe cinza, rótulos, blocos de conteúdo e hierarquia básica.</td>
+            <td>Validação da arquitetura da informação e disposição dos elementos.</td>
+            <td>Papel / Miro / Figma cinza</td>
+          </tr>
+          <tr>
+            <td><strong>Mid-Fi</strong></td>
+            <td>Layout navegável em escala real, drawers e modais clicáveis sem o estilo final.</td>
+            <td>Fluidez do fluxo de trabalho, usabilidade da comanda e pedidos.</td>
+            <td>Figma Protótipo / HTML estático</td>
+          </tr>
+          <tr>
+            <td><strong>Hi-Fi</strong></td>
+            <td>Cores oficiais, tipografia calibrada, fotos reais dos pratos, microinterações e sincronização real.</td>
+            <td>Experiência completa de usuário, legibilidade sob iluminação de salão e confiança.</td>
+            <td>Web App funcional (HTML/CSS/JS)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="fidelity-grid">
+        <div class="fidelity-box">
+          <div class="fidelity-title">1. Lo-Fi (Estrutura)</div>
+          <div class="fidelity-preview">
+            <div>[ Mesa 04 - Ocupada ]</div>
+            <div>[ Lista de Itens ]</div>
+            <div>[ Total: R$ -- ]</div>
+            <div>[ Botão Ação ]</div>
+          </div>
+        </div>
+        <div class="fidelity-box">
+          <div class="fidelity-title">2. Mid-Fi (Fluxo)</div>
+          <div class="fidelity-preview">
+            <div style="font-weight: bold;">Mesa 04 — Comanda</div>
+            <div>• 1x Picanha (R$ 89)</div>
+            <div>• 2x Chopp (R$ 28)</div>
+            <div style="background: #e2e8f0; padding: 4px; border-radius: 4px;">Enviar Cozinha</div>
+          </div>
+        </div>
+        <div class="fidelity-box">
+          <div class="fidelity-title">3. Hi-Fi (Visual Final)</div>
+          <div class="fidelity-preview" style="background: #fff; border: 1.5px solid #c92a2a;">
+            <div style="color: #c92a2a; font-weight: 800;">Bistrô & Gestão</div>
+            <div style="font-size: 0.75rem; color: #15803d; font-weight: 700;">🟢 Mesa 04 (R$ 117,00)</div>
+            <div style="background: #c92a2a; color: white; border-radius: 4px; padding: 4px; font-weight: bold; font-size: 0.75rem;">Fechar Comanda</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 11. DESIGN DE INTERAÇÃO (IxD) -->
+    <section>
+      <h2>11. Design de Interação (IxD)</h2>
+      <p>Definição de comportamento de componentes, transições e feedbacks táteis do sistema:</p>
+      <ul>
+        <li><strong>Gaveta Lateral da Comanda (Drawer):</strong> Abre lateralmente em camada sobreposta com fundo escurecido (overlay blur), preservando a visão do salão sem recarregar a página.</li>
+        <li><strong>Cesta e Itens Confirmados:</strong> Cabeçalhos em acordeão com setas indicativas de expansão e recolhimento instantâneo.</li>
+        <li><strong>Controle de Quantidade (+ / -):</strong> Botões com microfeedback visual para ajuste rápido de itens sem necessidade de digitação.</li>
+        <li><strong>Validação Proativa de Limite de Fiado:</strong> Bloqueio visual do botão de confirmação e modal explicativo com detalhamento caso a soma de débito ultrapasse o limite.</li>
+        <li><strong>Notificações Toast em Tempo Real:</strong> Confirmações de pedido e baixas de fiado exibidas em banners flutuantes com animação de subida e fechamento automático.</li>
+        <li><strong>Sincronização Ativa de Pedidos:</strong> Intervalos de sincronização em segundo plano garantem que mudanças de status feitas pela cozinha reflitam na tela do cliente imediatamente.</li>
+      </ul>
+    </section>
+
+    <!-- 12. UI — INTERFACE FINAL -->
+    <section>
+      <h2>12. UI — Interface Final (Guia de Estilo)</h2>
+      <p>Identidade visual refinada para gastronomia, bistrô e hospitalidade, com estética limpa, equilibrada e acolhedora:</p>
+
+      <table class="table-custom">
+        <thead>
+          <tr>
+            <th style="width: 20%;">Uso / Token</th>
+            <th style="width: 32%;">Cor & Código HEX</th>
+            <th>Justificativa & Aplicação</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Cor Primária</strong></td>
+            <td>
+              <div class="color-swatch-cell">
+                <span class="color-circle" style="background: #c92a2a;"></span>
+                #C92A2A · Vermelho Bistrô
+              </div>
+            </td>
+            <td>Transmite apetite, acolhimento e autoridade gastronômica (botões principais, logotipo, destaques).</td>
+          </tr>
+          <tr>
+            <td><strong>Primária Dark / Hover</strong></td>
+            <td>
+              <div class="color-swatch-cell">
+                <span class="color-circle" style="background: #a61e1e;"></span>
+                #A61E1E · Rubi Intenso
+              </div>
+            </td>
+            <td>Estados de hover e gradientes sofisticados para botões e cabeçalhos.</td>
+          </tr>
+          <tr>
+            <td><strong>Fundo Suave / Badge</strong></td>
+            <td>
+              <div class="color-swatch-cell">
+                <span class="color-circle" style="background: #fee2e2;"></span>
+                #FEE2E2 · Vermelho Claro
+              </div>
+            </td>
+            <td>Fundo de badges, alertas suaves e seleção de itens no cardápio.</td>
+          </tr>
+          <tr>
+            <td><strong>Status Livre / Sucesso</strong></td>
+            <td>
+              <div class="color-swatch-cell">
+                <span class="color-circle" style="background: #10b981;"></span>
+                #10B981 · Verde Esmeralda
+              </div>
+            </td>
+            <td>Mesas livres, confirmação de pedidos e pedidos prontos para entrega.</td>
+          </tr>
+          <tr>
+            <td><strong>Status Ocupada</strong></td>
+            <td>
+              <div class="color-swatch-cell">
+                <span class="color-circle" style="background: #f59e0b;"></span>
+                #F59E0B · Âmbar / Laranja
+              </div>
+            </td>
+            <td>Mesas ocupadas e itens em preparo na cozinha.</td>
+          </tr>
+          <tr>
+            <td><strong>Fundo da Aplicação</strong></td>
+            <td>
+              <div class="color-swatch-cell">
+                <span class="color-circle" style="background: #eaedf2;"></span>
+                #EAEDF2 · Branco Acinzentado
+              </div>
+            </td>
+            <td>Contraste perfeito com as caixas brancas dos cards, evitando cansaço visual.</td>
+          </tr>
+          <tr>
+            <td><strong>Tipografia Principal</strong></td>
+            <td>
+              <div class="color-swatch-cell">
+                <span class="color-circle" style="background: #1e293b;"></span>
+                #1E293B · Grafite Escuro
+              </div>
+            </td>
+            <td>Altíssima legibilidade em telas de balcão e smartphones sob qualquer iluminação.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Tipografia do Sistema</h3>
+      <ul>
+        <li><strong>Títulos e Identidade:</strong> <code>Outfit</code> (Sem serifa, moderna, geométrica e amigável).</li>
+        <li><strong>Textos Corridos e Números de Comanda:</strong> <code>Plus Jakarta Sans</code> (Números tabulares e clareza em valores monetários R$).</li>
+      </ul>
+
+      <h3>Componentes-Chave</h3>
+      <ul>
+        <li><strong>Cards de Mesas:</strong> Bordas coloridas indicativas de status e valor atualizado da comanda.</li>
+        <li><strong>KDS Cards:</strong> Indicador visual de tempo e botões de ação para troca de status com 1 toque.</li>
+        <li><strong>Tracker de 4 Etapas:</strong> Linha de progresso conectada com badges pulsantes e alerta comemorativo ao ficar pronto.</li>
+      </ul>
+    </section>
+
+  </div>
+
+</body>
+</html>
