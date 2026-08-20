@@ -242,8 +242,9 @@
           </div>
 
           <div class="menu-editor-form">
-            <h3 class="menu-form-title">Novo Cliente</h3>
+            <h3 class="menu-form-title" id="client-form-title">Novo Cliente</h3>
             <form id="client-form" onsubmit="handleSaveClient(event)">
+              <input type="hidden" id="client-edit-id" value="">
               <div class="form-group" style="margin-bottom: 16px;">
                 <label class="form-label" for="client-name">Nome *</label>
                 <input class="form-input" type="text" id="client-name" required placeholder="Ex: João da Silva">
@@ -266,11 +267,14 @@
                   <input class="form-input" type="number" step="0.01" min="0" id="client-limit" placeholder="Sem limite">
                 </div>
               </div>
-              <button class="action-btn" type="submit" style="width: 100%;">Cadastrar Cliente</button>
+              <div style="display: flex; gap: 10px;">
+                <button class="action-btn" type="submit" id="btn-save-client" style="flex: 1;">Cadastrar Cliente</button>
+                <button class="action-btn secondary" type="button" id="btn-cancel-client" onclick="cancelEditClient()" style="display: none; padding: 0 16px;">Cancelar</button>
+              </div>
             </form>
             
             <h3 class="menu-form-title" style="margin-top: 32px; border-top: 1px solid var(--border); padding-top: 16px;">Clientes Cadastrados</h3>
-            <div id="clients-list" style="display: flex; flex-direction: column; gap: 8px; max-height: 300px; overflow-y: auto;">
+            <div id="clients-list" style="display: flex; flex-direction: column; gap: 10px; max-height: 380px; overflow-y: auto;">
               <!-- Clients populated here -->
             </div>
           </div>

@@ -1560,29 +1560,159 @@ function deleteUser(userId) {
 // --- CLIENTES E FIADOS ---
 function handleSaveClient(e) {
   e.preventDefault();
+  const editIdInput = document.getElementById('client-edit-id');
+  const editId = editIdInput ? editIdInput.value.trim() : '';
+
   const name = document.getElementById('client-name').value.trim();
   const phone = document.getElementById('client-phone').value.trim();
   const address = document.getElementById('client-address').value.trim();
   const paydateInput = document.getElementById('client-paydate');
   const paydate = paydateInput ? paydateInput.value.trim() : '';
   const limitInput = document.getElementById('client-limit');
-  const limit = limitInput && limitInput.value ? parseFloat(limitInput.value) : null;
+  const limit = limitInput && limitInput.value !== '' ? parseFloat(limitInput.value) : null;
 
-  const newClient = {
-    id: `client-${Date.now()}`,
-    name,
-    phone,
-    address,
-    paydate,
-    limit,
-    createdAt: new Date().toISOString()
-  };
+  if (!name) {
+    alert('Por favor, informe o nome do cliente.');
+    return;
+  }
 
-  state.clients.push(newClient);
+  if (editId) {
+    // Modo Edição
+    const clientIndex = state.clients.findIndex(c => c.id === editId);
+    if (clientIndex !== -1) {
+      const oldName = state.clients[clientIndex].name;
+      state.clients[clientIndex] = {
+        ...state.clients[clientIndex],
+        name,
+        phone,
+        address,
+        paydate,
+        limit,
+        updatedAt: new Date().toISOString()
+      };
+
+      // Se mudou de nome, sincroniza em fiados pendentes para não perder o vínculo
+      if (oldName && oldName !== name && state.fiados) {
+        state.fiados.forEach(f => {
+          if (f.clientName && f.clientName.trim().toLowerCase() === oldName.trim().toLowerCase()) {
+            f.clientName = name;
+          }
+        });
+        saveFiadosToStorage();
+      }
+
+      showFiadoSuccessToast('Cadastro do cliente atualizado com sucesso!');
+    }
+    cancelEditClient();
+  } else {
+    // Modo Criação
+    // Verifica se já existe um cliente com o mesmo nome
+    const exists = state.clients.some(c => c.name.trim().toLowerCase() === name.toLowerCase());
+    if (exists) {
+      if (!confirm(`Já existe um cliente cadastrado com o nome "${name}". Deseja cadastrar outro com o mesmo nome?`)) {
+        return;
+      }
+    }
+
+    const newClient = {
+      id: `client-${Date.now()}`,
+      name,
+      phone,
+      address,
+      paydate,
+      limit,
+      createdAt: new Date().toISOString()
+    };
+
+    state.clients.push(newClient);
+    document.getElementById('client-form').reset();
+    showFiadoSuccessToast('Cliente cadastrado com sucesso!');
+  }
+
   saveClientsToStorage();
-  
-  document.getElementById('client-form').reset();
   renderClientsList();
+  renderFiadosList();
+}
+
+function editClient(clientId) {
+  const client = state.clients.find(c => c.id === clientId);
+  if (!client) return;
+
+  const editIdInput = document.getElementById('client-edit-id');
+  const nameInput = document.getElementById('client-name');
+  const phoneInput = document.getElementById('client-phone');
+  const addressInput = document.getElementById('client-address');
+  const paydateInput = document.getElementById('client-paydate');
+  const limitInput = document.getElementById('client-limit');
+  const title = document.getElementById('client-form-title');
+  const saveBtn = document.getElementById('btn-save-client');
+  const cancelBtn = document.getElementById('btn-cancel-client');
+
+  if (editIdInput) editIdInput.value = client.id;
+  if (nameInput) nameInput.value = client.name || '';
+  if (phoneInput) phoneInput.value = client.phone || '';
+  if (addressInput) addressInput.value = client.address || '';
+  if (paydateInput) paydateInput.value = client.paydate || '';
+  if (limitInput) limitInput.value = (client.limit !== null && client.limit !== undefined) ? client.limit : '';
+
+  if (title) title.innerText = `Editar Cliente: ${client.name}`;
+  if (saveBtn) saveBtn.innerText = 'Salvar Alterações';
+  if (cancelBtn) cancelBtn.style.display = 'inline-flex';
+
+  if (nameInput) {
+    nameInput.focus();
+    nameInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  renderClientsList();
+}
+
+function cancelEditClient() {
+  const form = document.getElementById('client-form');
+  if (form) form.reset();
+
+  const editIdInput = document.getElementById('client-edit-id');
+  const title = document.getElementById('client-form-title');
+  const saveBtn = document.getElementById('btn-save-client');
+  const cancelBtn = document.getElementById('btn-cancel-client');
+
+  if (editIdInput) editIdInput.value = '';
+  if (title) title.innerText = 'Novo Cliente';
+  if (saveBtn) saveBtn.innerText = 'Cadastrar Cliente';
+  if (cancelBtn) cancelBtn.style.display = 'none';
+
+  renderClientsList();
+}
+
+function deleteClient(clientId) {
+  const client = state.clients.find(c => c.id === clientId);
+  if (!client) return;
+
+  let pendingDebt = 0;
+  if (state.fiados) {
+    pendingDebt = state.fiados
+      .filter(f => f.clientName && f.clientName.trim().toLowerCase() === client.name.trim().toLowerCase())
+      .reduce((sum, f) => sum + (f.total || 0), 0);
+  }
+
+  let msg = `Tem certeza que deseja excluir o cliente "${client.name}"?`;
+  if (pendingDebt > 0) {
+    msg = `ATENÇÃO: O cliente "${client.name}" possui ${formatCurrency(pendingDebt)} em fiados pendentes.\n\nDeseja realmente excluir o cadastro do cliente? (Os registros de fiado existentes serão preservados).`;
+  }
+
+  if (confirm(msg)) {
+    state.clients = state.clients.filter(c => c.id !== clientId);
+    saveClientsToStorage();
+
+    const editIdInput = document.getElementById('client-edit-id');
+    if (editIdInput && editIdInput.value === clientId) {
+      cancelEditClient();
+    }
+
+    renderClientsList();
+    renderFiadosList();
+    showFiadoSuccessToast(`Cliente "${client.name}" excluído com sucesso.`);
+  }
 }
 
 function renderClientsList() {
@@ -1590,19 +1720,60 @@ function renderClientsList() {
   if (!container) return;
 
   if (state.clients.length === 0) {
-    container.innerHTML = `<div style="text-align: center; color: var(--text-tertiary); padding: 12px 0;">Nenhum cliente cadastrado.</div>`;
+    container.innerHTML = `<div style="text-align: center; color: var(--text-tertiary); padding: 16px 0; font-size: 0.9rem;">Nenhum cliente cadastrado.</div>`;
     return;
   }
 
-  container.innerHTML = state.clients.map(client => `
-    <div style="border: 1px solid var(--border); padding: 12px; border-radius: 6px; background: var(--bg-primary);">
-      <div style="font-weight: 600; margin-bottom: 4px;">${client.name}</div>
-      ${client.phone ? `<div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 2px;">📞 ${client.phone}</div>` : ''}
-      ${client.address ? `<div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 2px;">📍 ${client.address}</div>` : ''}
-      ${client.paydate ? `<div style="font-size: 0.85rem; color: var(--text-secondary);">🗓️ Vencimento: ${client.paydate}</div>` : ''}
-      ${client.limit !== null && client.limit !== undefined ? `<div style="font-size: 0.85rem; color: var(--color-paying); font-weight: 700; margin-top: 4px;">💳 Limite: ${formatCurrency(client.limit)}</div>` : ''}
-    </div>
-  `).join('');
+  const editIdInput = document.getElementById('client-edit-id');
+  const currentEditingId = editIdInput ? editIdInput.value : '';
+
+  container.innerHTML = state.clients.map(client => {
+    const isEditing = currentEditingId === client.id;
+    
+    let clientDebt = 0;
+    if (state.fiados) {
+      clientDebt = state.fiados
+        .filter(f => f.clientName && f.clientName.trim().toLowerCase() === client.name.trim().toLowerCase())
+        .reduce((sum, f) => sum + (f.total || 0), 0);
+    }
+
+    const hasLimit = client.limit !== null && client.limit !== undefined;
+    const isExceeded = hasLimit && clientDebt > client.limit;
+
+    return `
+      <div style="border: 1.5px solid ${isEditing ? 'var(--accent)' : 'var(--border)'}; padding: 14px; border-radius: var(--radius-sm); background: ${isEditing ? 'var(--accent-light)' : 'var(--bg-primary)'}; transition: all 0.2s ease; box-shadow: ${isEditing ? '0 0 0 2px rgba(201, 42, 42, 0.2)' : 'none'};">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 6px;">
+          <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+            <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), #a61e1e); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.82rem; flex-shrink: 0;">
+              ${client.name ? client.name.charAt(0).toUpperCase() : 'C'}
+            </div>
+            <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              ${client.name}
+            </div>
+          </div>
+          <div style="display: flex; gap: 6px; flex-shrink: 0;">
+            <button type="button" class="btn-icon" title="Editar Cliente" onclick="editClient('${client.id}')" style="width: 30px; height: 30px;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button type="button" class="btn-icon danger" title="Excluir Cliente" onclick="deleteClient('${client.id}')" style="width: 30px; height: 30px;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 3px; font-size: 0.84rem; color: var(--text-secondary); margin-left: 40px;">
+          ${client.phone ? `<div>📞 ${client.phone}</div>` : ''}
+          ${client.address ? `<div>📍 ${client.address}</div>` : ''}
+          ${client.paydate ? `<div>🗓️ Vencimento: <strong style="color: var(--text-primary);">${client.paydate}</strong></div>` : ''}
+          
+          <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px;">
+            ${hasLimit ? `<span style="background: rgba(201, 42, 42, 0.1); color: var(--accent); padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 0.78rem;">💳 Limite: ${formatCurrency(client.limit)}</span>` : '<span style="background: var(--bg-tertiary); color: var(--text-tertiary); padding: 2px 8px; border-radius: 4px; font-size: 0.78rem;">Sem limite</span>'}
+            ${clientDebt > 0 ? `<span style="background: ${isExceeded ? 'rgba(239, 68, 68, 0.15)' : 'rgba(245, 158, 11, 0.15)'}; color: ${isExceeded ? '#dc2626' : '#d97706'}; padding: 2px 8px; border-radius: 4px; font-weight: 800; font-size: 0.78rem;">⚠️ Dívida: ${formatCurrency(clientDebt)}</span>` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
 }
 
 function renderFiadosList() {
