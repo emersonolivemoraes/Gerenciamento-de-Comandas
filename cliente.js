@@ -288,10 +288,10 @@ function renderCustomerAccount() {
   let extratoHtml = '';
   if (clientFiados.length === 0) {
     extratoHtml = `
-      <div style="text-align: center; padding: 32px 16px; color: var(--text-tertiary);">
-        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 8px;"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
-        <p style="font-weight: 600;">Você não possui nenhum débito pendente na sua caderneta!</p>
-        <span style="font-size: 0.85rem;">Seu crédito de ${formatCurrency(creditLimit)} está 100% livre para novos pedidos.</span>
+      <div style="text-align: center; padding: 36px 16px; color: var(--text-tertiary); background: var(--bg-primary); border-radius: var(--radius-md); border: 1.5px dashed var(--color-free);">
+        <div style="font-size: 2.5rem; margin-bottom: 8px;">🎉</div>
+        <p style="font-weight: 700; font-size: 1.05rem; color: var(--color-free); margin-bottom: 4px;">Tudo em dia! Nenhuma dívida pendente.</p>
+        <span style="font-size: 0.88rem; color: var(--text-secondary);">Seu limite de crédito de <strong>${formatCurrency(creditLimit)}</strong> está 100% liberado para novos pedidos.</span>
       </div>
     `;
   } else {
@@ -330,6 +330,12 @@ function renderCustomerAccount() {
           <div class="extrato-items-box">
             <div style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em; margin-bottom: 4px;">Itens do Pedido:</div>
             ${itemsRows}
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; padding-top: 10px; border-top: 1px dashed var(--border);">
+            <span style="font-size: 0.8rem; color: var(--color-paying); font-weight: 700;">● Em aberto</span>
+            <button class="btn-secondary" style="padding: 6px 14px; font-size: 0.82rem; border-color: var(--accent); color: var(--accent); font-weight: 700; border-radius: var(--radius-sm);" onclick="openCustomerPayFiadoModal('${f.id}')">
+              💳 Quitar este Pedido (${formatCurrency(f.total)})
+            </button>
           </div>
         </div>
       `;
@@ -381,52 +387,187 @@ function renderCustomerAccount() {
     </div>
 
     <!-- Actions Row -->
-    <div class="account-actions-row">
+    <div class="account-actions-row" style="display: flex; flex-direction: column; gap: 10px; margin-top: 24px;">
       <button class="btn-primary-large" onclick="goToScreen('menu')">
-        🛍️ Fazer Pedido no Fiado
+        🛍️ Fazer Pedido no Cardápio
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
       </button>
       ${totalDebt > 0 ? `
-        <button class="btn-secondary" onclick="showPixForDebtPayment(${totalDebt})">
-          📱 Pagar Conta via PIX
+        <button class="btn-primary-large" style="background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35); font-weight: 800;" onclick="openCustomerPayFiadoModal(null)">
+          ✅ Quitar Toda a Dívida (${formatCurrency(totalDebt)})
+        </button>
+        <button class="btn-secondary" style="width: 100%; justify-content: center;" onclick="showPixForDebtPayment(${totalDebt})">
+          📱 Pagar via PIX (Ver QR Code)
         </button>
       ` : ''}
     </div>
   `;
 }
 
-function showPixForDebtPayment(totalDebt) {
-  const pixPayload = `00020126580014br.gov.bcb.pix0136bistro-gestao-pagamentos@bistro.com520400005303986540${totalDebt.toFixed(2)}5802BR5916BISTRO COMANDAS6009SAO PAULO62070503***6304`;
+function openCustomerPayFiadoModal(specificFiadoId = null) {
+  if (!clientState.loggedInClient) return;
+
+  const client = clientState.loggedInClient;
+  const debtInfo = getClientDebtAndLimit(client.name);
+  const clientFiados = debtInfo ? debtInfo.clientFiados : [];
+
+  let targetTotal = 0;
+  let targetDesc = '';
+
+  if (specificFiadoId) {
+    const fiado = clientFiados.find(f => f.id === specificFiadoId || String(f.id) === String(specificFiadoId));
+    if (!fiado) {
+      alert('Não foi possível localizar este registro de fiado.');
+      return;
+    }
+    targetTotal = fiado.total || 0;
+    targetDesc = `Quitação de Pedido Individual (${fiado.tableInfo || 'Autoatendimento'})`;
+  } else {
+    targetTotal = debtInfo ? debtInfo.totalDebt : 0;
+    targetDesc = `Quitação Total da Caderneta (${clientFiados.length} ${clientFiados.length === 1 ? 'pedido' : 'pedidos'})`;
+  }
+
+  if (targetTotal <= 0) {
+    alert('Você não possui débitos pendentes para quitar.');
+    return;
+  }
+
+  const existing = document.getElementById('customer-pay-modal');
+  if (existing) existing.remove();
+
+  const pixPayload = `00020126580014br.gov.bcb.pix0136bistro-gestao-pagamentos@bistro.com520400005303986540${targetTotal.toFixed(2)}5802BR5916BISTRO COMANDAS6009SAO PAULO62070503***6304`;
 
   const modal = document.createElement('div');
-  modal.id = 'pix-debt-modal';
+  modal.id = 'customer-pay-modal';
   modal.style.cssText = `
     position: fixed; top: 0; left: 0; right: 0; bottom: 0;
     background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(6px);
-    z-index: 999; display: flex; align-items: center; justify-content: center;
-    padding: 20px; animation: fadeIn 0.2s ease;
+    z-index: 9999; display: flex; align-items: center; justify-content: center;
+    padding: 16px; animation: fadeIn 0.2s ease;
   `;
 
   modal.innerHTML = `
-    <div style="background: var(--bg-secondary); border: 2px solid var(--accent); border-radius: var(--radius-lg); padding: 28px 24px; max-width: 440px; width: 100%; text-align: center; box-shadow: var(--shadow-lg);">
-      <h3 style="font-family: var(--font-title); font-size: 1.25rem; font-weight: 800; margin-bottom: 6px;">Pagar Caderneta via PIX</h3>
-      <p style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 16px;">Valor total devido: <strong style="color: var(--color-paying); font-size: 1.1rem;">${formatCurrency(totalDebt)}</strong></p>
+    <div style="background: var(--bg-secondary); border: 2px solid var(--accent); border-radius: var(--radius-lg); padding: 24px 20px; max-width: 460px; width: 100%; box-shadow: var(--shadow-lg); max-height: 90vh; overflow-y: auto;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 38px; height: 38px; border-radius: 10px; background: linear-gradient(135deg, #10b981, #059669); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+            💳
+          </div>
+          <div>
+            <h3 style="font-family: var(--font-title); font-size: 1.15rem; font-weight: 800; color: var(--text-primary);">Quitar Dívida</h3>
+            <span style="font-size: 0.78rem; color: var(--text-secondary);">${client.name}</span>
+          </div>
+        </div>
+        <button type="button" class="btn-icon" style="width: 32px; height: 32px; border-radius: 50%;" onclick="document.getElementById('customer-pay-modal').remove()">✕</button>
+      </div>
 
-      <div class="pix-qr-canvas-wrap" style="margin: 0 auto 16px;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 200 200">
+      <div style="background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 14px; text-align: center; margin-bottom: 16px;">
+        <span style="font-size: 0.78rem; font-weight: 700; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.05em; display: block; margin-bottom: 2px;">${targetDesc}</span>
+        <div style="font-size: 1.75rem; font-weight: 900; color: var(--color-paying); font-family: var(--font-title);">${formatCurrency(targetTotal)}</div>
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <label style="font-size: 0.85rem; font-weight: 700; display: block; margin-bottom: 8px; color: var(--text-primary);">Como você realizou ou deseja realizar o pagamento?</label>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;" id="customer-pay-methods">
+          <button type="button" class="payment-method-pill active" id="cpay-btn-pix" onclick="selectCustomerDebtPayMethod('pix', '${specificFiadoId || ''}', ${targetTotal})">
+            📱 PIX
+          </button>
+          <button type="button" class="payment-method-pill" id="cpay-btn-cash" onclick="selectCustomerDebtPayMethod('cash', '${specificFiadoId || ''}', ${targetTotal})">
+            💵 Dinheiro
+          </button>
+          <button type="button" class="payment-method-pill" id="cpay-btn-card" onclick="selectCustomerDebtPayMethod('card', '${specificFiadoId || ''}', ${targetTotal})">
+            💳 Cartão
+          </button>
+        </div>
+      </div>
+
+      <div id="cpay-method-details" style="margin-bottom: 18px;">
+        <div class="pix-qr-canvas-wrap" style="margin: 0 auto 12px; text-align: center;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 200 200">
+            <rect width="200" height="200" fill="#ffffff"/>
+            <rect x="20" y="20" width="50" height="50" fill="#000000"/>
+            <rect x="30" y="30" width="30" height="30" fill="#ffffff"/>
+            <rect x="38" y="38" width="14" height="14" fill="#000000"/>
+            <rect x="130" y="20" width="50" height="50" fill="#000000"/>
+            <rect x="140" y="30" width="30" height="30" fill="#ffffff"/>
+            <rect x="148" y="38" width="14" height="14" fill="#000000"/>
+            <rect x="20" y="130" width="50" height="50" fill="#000000"/>
+            <rect x="30" y="140" width="30" height="30" fill="#ffffff"/>
+            <rect x="38" y="148" width="14" height="14" fill="#000000"/>
+            <rect x="85" y="25" width="25" height="15" fill="#000000"/>
+            <rect x="85" y="55" width="30" height="15" fill="#000000"/>
+            <rect x="85" y="85" width="30" height="30" fill="#000000"/>
+            <rect x="130" y="85" width="45" height="15" fill="#000000"/>
+            <rect x="25" y="85" width="45" height="20" fill="#000000"/>
+            <rect x="130" y="120" width="20" height="40" fill="#000000"/>
+            <rect x="160" y="145" width="20" height="25" fill="#000000"/>
+            <rect x="85" y="130" width="30" height="40" fill="#000000"/>
+          </svg>
+        </div>
+
+        <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+          <input type="text" class="search-box-input" readonly value="${pixPayload}" id="cmodal-pix-copy" style="font-size: 0.75rem;">
+          <button type="button" class="btn-primary-large" style="width: auto; padding: 8px 12px; font-size: 0.8rem; margin: 0;" onclick="copyCustomerModalPix()">
+            Copiar
+          </button>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <button type="button" class="btn-primary-large" style="width: 100%; justify-content: center; background: linear-gradient(135deg, #10b981, #059669); font-weight: 800; font-size: 0.95rem; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);" onclick="confirmCustomerFiadoPayment('${specificFiadoId || ''}')">
+          ✅ Confirmar que Paguei (Quitar ${formatCurrency(targetTotal)})
+        </button>
+        <button type="button" class="btn-secondary" style="width: 100%; justify-content: center;" onclick="document.getElementById('customer-pay-modal').remove()">
+          Cancelar
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+}
+
+let selectedCustomerDebtMethod = 'pix';
+
+function selectCustomerDebtPayMethod(method, specificFiadoId, targetTotal) {
+  selectedCustomerDebtMethod = method;
+  ['pix', 'cash', 'card'].forEach(m => {
+    const btn = document.getElementById(`cpay-btn-${m}`);
+    if (btn) {
+      if (m === method) {
+        btn.classList.add('active');
+        btn.style.borderColor = 'var(--accent)';
+        btn.style.background = 'var(--accent-light)';
+        btn.style.color = 'var(--accent)';
+        btn.style.fontWeight = '700';
+      } else {
+        btn.classList.remove('active');
+        btn.style.borderColor = 'var(--border)';
+        btn.style.background = 'var(--bg-primary)';
+        btn.style.color = 'var(--text-secondary)';
+        btn.style.fontWeight = '600';
+      }
+    }
+  });
+
+  const detailsContainer = document.getElementById('cpay-method-details');
+  if (!detailsContainer) return;
+
+  if (method === 'pix') {
+    const pixPayload = `00020126580014br.gov.bcb.pix0136bistro-gestao-pagamentos@bistro.com520400005303986540${targetTotal.toFixed(2)}5802BR5916BISTRO COMANDAS6009SAO PAULO62070503***6304`;
+    detailsContainer.innerHTML = `
+      <div class="pix-qr-canvas-wrap" style="margin: 0 auto 12px; text-align: center;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 200 200">
           <rect width="200" height="200" fill="#ffffff"/>
           <rect x="20" y="20" width="50" height="50" fill="#000000"/>
           <rect x="30" y="30" width="30" height="30" fill="#ffffff"/>
           <rect x="38" y="38" width="14" height="14" fill="#000000"/>
-          
           <rect x="130" y="20" width="50" height="50" fill="#000000"/>
           <rect x="140" y="30" width="30" height="30" fill="#ffffff"/>
           <rect x="148" y="38" width="14" height="14" fill="#000000"/>
-          
           <rect x="20" y="130" width="50" height="50" fill="#000000"/>
           <rect x="30" y="140" width="30" height="30" fill="#ffffff"/>
           <rect x="38" y="148" width="14" height="14" fill="#000000"/>
-          
           <rect x="85" y="25" width="25" height="15" fill="#000000"/>
           <rect x="85" y="55" width="30" height="15" fill="#000000"/>
           <rect x="85" y="85" width="30" height="30" fill="#000000"/>
@@ -437,21 +578,133 @@ function showPixForDebtPayment(totalDebt) {
           <rect x="85" y="130" width="30" height="40" fill="#000000"/>
         </svg>
       </div>
-
-      <div class="pix-code-row" style="margin-bottom: 16px;">
-        <input type="text" class="search-box-input" readonly value="${pixPayload}" id="modal-pix-copy" style="font-size: 0.78rem;">
-        <button type="button" class="btn-primary-large" style="width: auto; padding: 10px 14px; font-size: 0.85rem; margin: 0;" onclick="copyModalPix()">
+      <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+        <input type="text" class="search-box-input" readonly value="${pixPayload}" id="cmodal-pix-copy" style="font-size: 0.75rem;">
+        <button type="button" class="btn-primary-large" style="width: auto; padding: 8px 12px; font-size: 0.8rem; margin: 0;" onclick="copyCustomerModalPix()">
           Copiar
         </button>
       </div>
+    `;
+  } else if (method === 'cash') {
+    detailsContainer.innerHTML = `
+      <div style="background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px; text-align: center; color: var(--text-secondary); font-size: 0.88rem;">
+        💵 <strong>Pagamento em Dinheiro no Caixa:</strong><br>
+        Ao clicar em confirmar abaixo, o débito será dado como quitado e baixado no sistema.
+      </div>
+    `;
+  } else if (method === 'card') {
+    detailsContainer.innerHTML = `
+      <div style="background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px; text-align: center; color: var(--text-secondary); font-size: 0.88rem;">
+        💳 <strong>Pagamento no Cartão (Débito/Crédito):</strong><br>
+        Acerto realizado na maquininha do balcão. Clique em confirmar para baixar a dívida.
+      </div>
+    `;
+  }
+}
 
-      <button type="button" class="btn-secondary" style="width: 100%; justify-content: center;" onclick="document.getElementById('pix-debt-modal').remove()">
-        Fechar
+function copyCustomerModalPix() {
+  const input = document.getElementById('cmodal-pix-copy');
+  if (input) {
+    input.select();
+    navigator.clipboard.writeText(input.value);
+    alert('Código PIX copiado com sucesso!');
+  }
+}
+
+function confirmCustomerFiadoPayment(specificFiadoId = '') {
+  if (!clientState.loggedInClient) return;
+
+  const clientName = clientState.loggedInClient.name;
+  let fiadosList = [];
+  try {
+    const saved = localStorage.getItem('bistro_fiados');
+    if (saved) fiadosList = JSON.parse(saved);
+  } catch (e) {
+    fiadosList = [];
+  }
+
+  let totalSettled = 0;
+
+  if (specificFiadoId && specificFiadoId.trim() !== '') {
+    const fiadoIndex = fiadosList.findIndex(f => f.id === specificFiadoId || String(f.id) === String(specificFiadoId));
+    if (fiadoIndex !== -1) {
+      totalSettled = fiadosList[fiadoIndex].total || 0;
+      fiadosList.splice(fiadoIndex, 1);
+    } else {
+      // Fallback por nome
+      const fiadosDoCliente = fiadosList.filter(f => f.clientName && f.clientName.trim().toLowerCase() === clientName.trim().toLowerCase());
+      if (fiadosDoCliente.length > 0) {
+        totalSettled = fiadosDoCliente[0].total || 0;
+        const idx = fiadosList.indexOf(fiadosDoCliente[0]);
+        if (idx !== -1) fiadosList.splice(idx, 1);
+      }
+    }
+  } else {
+    // Quitação Total de todos os fiados do cliente
+    const fiadosDoCliente = fiadosList.filter(f => f.clientName && f.clientName.trim().toLowerCase() === clientName.trim().toLowerCase());
+    totalSettled = fiadosDoCliente.reduce((sum, f) => sum + (f.total || 0), 0);
+    fiadosList = fiadosList.filter(f => !f.clientName || f.clientName.trim().toLowerCase() !== clientName.trim().toLowerCase());
+  }
+
+  if (totalSettled > 0) {
+    // 1. Adiciona à receita do dia
+    try {
+      const currentRev = parseFloat(localStorage.getItem('bistro_revenue') || '0');
+      localStorage.setItem('bistro_revenue', (currentRev + totalSettled).toString());
+    } catch (e) {}
+
+    // 2. Salva lista de fiados atualizada
+    localStorage.setItem('bistro_fiados', JSON.stringify(fiadosList));
+
+    // 3. Dispara evento para sincronizar com painel do dono e outras telas
+    window.dispatchEvent(new Event('storage'));
+  }
+
+  // Fecha modais
+  const pModal = document.getElementById('customer-pay-modal');
+  if (pModal) pModal.remove();
+  const pixModal = document.getElementById('pix-debt-modal');
+  if (pixModal) pixModal.remove();
+
+  // Exibe celebração visual de sucesso
+  showCustomerSettlementSuccessModal(totalSettled, clientName);
+
+  // Re-renderiza tela da conta
+  renderCustomerAccount();
+}
+
+function showCustomerSettlementSuccessModal(amount, clientName) {
+  const modal = document.createElement('div');
+  modal.style.cssText = `
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(8px);
+    z-index: 10000; display: flex; align-items: center; justify-content: center;
+    padding: 20px; animation: fadeIn 0.25s ease;
+  `;
+
+  modal.innerHTML = `
+    <div style="background: var(--bg-secondary); border: 2px solid var(--color-free); border-radius: var(--radius-lg); padding: 32px 24px; max-width: 420px; width: 100%; text-align: center; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3); animation: scaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+      <div style="width: 70px; height: 70px; border-radius: 50%; background: linear-gradient(135deg, #10b981, #059669); color: white; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; margin: 0 auto 16px; box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);">
+        ✓
+      </div>
+      <h3 style="font-family: var(--font-title); font-size: 1.35rem; font-weight: 800; color: var(--text-primary); margin-bottom: 6px;">Dívida Quitada com Sucesso!</h3>
+      <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 16px;">
+        O valor de <strong style="color: var(--color-free); font-size: 1.15rem;">${formatCurrency(amount)}</strong> foi liquidado da caderneta de <strong>${clientName}</strong>.
+      </p>
+      <div style="background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 12px; margin-bottom: 20px; font-size: 0.84rem; color: var(--text-secondary);">
+        ✨ Seu limite de crédito foi 100% restabelecido e está liberado para novos pedidos no bistrô!
+      </div>
+      <button class="btn-primary-large" style="width: 100%; justify-content: center; background: linear-gradient(135deg, #10b981, #059669);" onclick="this.closest('div').parentElement.remove()">
+        OK, Entendido
       </button>
     </div>
   `;
 
   document.body.appendChild(modal);
+}
+
+function showPixForDebtPayment(totalDebt) {
+  openCustomerPayFiadoModal(null);
 }
 
 function copyModalPix() {
